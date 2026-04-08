@@ -1,9 +1,8 @@
-import type { ActionContext } from 'vuex';
-import type { LocationRow } from '@/types/location';
+import type { LocationRow } from '@shared/location';
 import type { LocationsState, RootState } from '@/types/store';
 import * as api from '@/api/locations';
 
-type LocationsContext = ActionContext<LocationsState, RootState>;
+type LocationsContext = { commit: any; dispatch: any; state: LocationsState; rootState: RootState };
 
 const state = (): LocationsState => ({
   items: [],

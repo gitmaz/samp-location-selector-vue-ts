@@ -41,13 +41,12 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
-import type { RootState } from '@/types/store';
 import MapSelector from '../components/MapSelector.vue';
 import * as geocodeApi from '../api/geocode';
 
 const sydney = { lat: -33.8688, lng: 151.2093 };
 
-const store = useStore<RootState>();
+const store = useStore();
 const coords = ref<{ lat: number; lng: number } | null>(null);
 const candidateAddress = ref<string>('');
 const resolvingAddress = ref<boolean>(false);

@@ -1,19 +1,38 @@
 <template>
-  <div ref="wrap" class="map-wrap"></div>
+  <div class="map-wrap">
+    <LMap
+      :zoom="initialZoom ?? 14"
+      :center="[initialLat, initialLng]"
+      :use-global-leaflet="false"
+      @click="onMapClick"
+    >
+      <LTileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        :max-zoom="19"
+      />
+
+      <LMarker
+        v-for="row in savedLocations"
+        :key="row.id"
+        :lat-lng="[row.latitude, row.longitude]"
+        :icon="savedIcon"
+      >
+        <LPopup>
+          {{ row.address }}
+        </LPopup>
+      </LMarker>
+
+      <LMarker v-if="pendingLatLng" :lat-lng="pendingLatLng" :icon="pendingIcon" />
+    </LMap>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, onUpdated, ref } from 'vue';
-import L from 'leaflet';
-import iconUrl from 'leaflet/dist/images/marker-icon.png';
-import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 import type { LocationRow } from '@shared/location';
-
-// Leaflet + bundlers: fix default marker asset URLs
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
+import { computed, ref } from 'vue';
+import { LMap, LMarker, LPopup, LTileLayer } from '@vue-leaflet/vue-leaflet';
+import L from 'leaflet';
 
 const props = defineProps<{
   initialLat: number;
@@ -26,77 +45,35 @@ const emit = defineEmits<{
   'update:coords': [payload: { lat: number; lng: number }];
 }>();
 
-const wrap = ref<HTMLDivElement | null>(null);
-let map: L.Map | undefined;
-let pendingMarker: L.Marker | undefined;
-let savedLayer: L.LayerGroup | undefined;
-
 const savedIcon = L.divIcon({
   className: 'marker marker--saved',
   iconSize: [14, 14],
   iconAnchor: [7, 7],
-});
+}) as unknown as L.Icon;
 
 const pendingIcon = L.divIcon({
   className: 'marker marker--pending',
   iconSize: [16, 16],
   iconAnchor: [8, 8],
-});
+}) as unknown as L.Icon;
 
-function placePendingMarker(latlng: L.LatLng) {
-  if (!map) return;
-  if (pendingMarker) pendingMarker.setLatLng(latlng);
-  else {
-    pendingMarker = L.marker(latlng, { icon: pendingIcon }).addTo(map);
-  }
-  emit('update:coords', { lat: latlng.lat, lng: latlng.lng });
-}
+const pendingLatLng = ref<[number, number] | null>(null);
 
-function renderSavedMarkers() {
-  if (!map) return;
-  if (savedLayer) savedLayer.clearLayers();
-  else savedLayer = L.layerGroup().addTo(map);
-
+const savedLocations = computed<LocationRow[]>(() => {
   const rows = props.savedLocations ?? [];
-  for (const row of rows) {
-    L.marker([row.latitude, row.longitude], { icon: savedIcon })
-      .bindPopup(row.address)
-      .addTo(savedLayer);
-  }
+  return rows.filter(
+    (row) =>
+      typeof row.id === 'number' &&
+      typeof row.latitude === 'number' &&
+      typeof row.longitude === 'number'
+  );
+});
+
+function onMapClick(e: L.LeafletMouseEvent) {
+  const { lat, lng } = e.latlng;
+  pendingLatLng.value = [lat, lng];
+  emit('update:coords', { lat, lng });
 }
-
-onMounted(() => {
-  if (!wrap.value) return;
-  map = L.map(wrap.value, {
-    zoomControl: true,
-  }).setView([props.initialLat, props.initialLng], props.initialZoom ?? 14);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(map);
-
-  map.on('click', (e: L.LeafletMouseEvent) => {
-    placePendingMarker(e.latlng);
-  });
-
-  renderSavedMarkers();
-});
-
-onUpdated(() => {
-  // Re-render saved markers whenever parent updates `savedLocations`.
-  renderSavedMarkers();
-});
-
-onBeforeUnmount(() => {
-  if (map) {
-    map.remove();
-    map = undefined;
-    pendingMarker = undefined;
-    savedLayer = undefined;
-  }
-});
 </script>
 
 <style scoped>
@@ -107,6 +84,11 @@ onBeforeUnmount(() => {
   overflow: hidden;
   border: 1px solid #cbd5e1;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.map-wrap :deep(.leaflet-container) {
+  height: 100%;
+  width: 100%;
 }
 </style>
 

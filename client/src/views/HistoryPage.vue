@@ -34,9 +34,8 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import type { RootState } from '@/types/store';
 
-const store = useStore<RootState>();
+const store = useStore();
 
 const items = computed(() => store.state.locations.items);
 const loading = computed(() => store.state.locations.loading);
