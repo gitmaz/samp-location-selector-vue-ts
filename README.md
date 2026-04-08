@@ -1,5 +1,9 @@
 # Location selector (Vue + Vuex + Node, TypeScript)
 
+![Map screenshot](./map.png)
+
+![Saved locations screenshot](./addreses.png)
+
 Same features as the JavaScript sample: map picker (Sydney CBD default), SQLite persistence, and a history view—with a **TypeScript** frontend and backend, plus **shared API types** used by both.
 
 - **Frontend:** Vue 3, Vuex 4, Vue Router, Vite, Leaflet, TypeScript (`vue-tsc`)  
