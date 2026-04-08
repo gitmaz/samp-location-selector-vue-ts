@@ -6,3 +6,6 @@ server/data/*.db-wal
 .env
 *.log
 .DS_Store
+test-results/
+playwright-report/
+playwright/.cache/

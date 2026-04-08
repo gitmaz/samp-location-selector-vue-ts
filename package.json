@@ -4,10 +4,17 @@
   "scripts": {
     "install:all": "npm install --prefix server && npm install --prefix client && node -e \"console.log('\\ninstall:all finished. Start the app with: npm run dev\\n')\"",
     "dev": "concurrently -n server,client -c blue,green \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "dev:e2e": "concurrently -n server,client -c blue,green \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "start": "npm run start --prefix server",
-    "build": "npm run build --prefix server && npm run build --prefix client"
+    "build": "npm run build --prefix server && npm run build --prefix client",
+    "test": "npm run test --prefix server",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:install": "playwright install"
   },
   "devDependencies": {
+    "@playwright/test": "^1.51.0",
     "concurrently": "^8.2.2"
   }
 }

@@ -55,7 +55,7 @@ cd client && npm run dev
 ## Using the app
 
 1. **Map** — Click the map to move the marker; press **Save location** to store the point. The server resolves the address via Nominatim when you do not send `address` in the JSON body.
-2. **Past locations** — Lists every row from the database with address, coordinates, and time. **Refresh** reloads from the API.
+2. **Saved locations** — Lists every row from the database with address, coordinates, and time. **Refresh** reloads from the API.
 
 The database file is `server/data/locations.db` (created automatically).
 
@@ -83,6 +83,77 @@ npm run typecheck
 
 Runs `tsc` with `--noEmit` to verify types without writing files.
 
+## Integration tests (API)
+
+The TypeScript server includes **HTTP integration tests** (Vitest + Supertest) that exercise the main API flows against a real Express app and an isolated SQLite file under your OS temp directory (not `server/data/locations.db`).
+
+They cover:
+
+- `GET /api/health`
+- `GET` / `POST` / `DELETE` `/api/locations` (create with explicit address, list, validation, delete, 404)
+- `GET /api/geocode/reverse` with `fetch` mocked so tests do not call the live Nominatim service
+
+From the **repository root** (`samp-locatiom-selector-vue-ts`):
+
+```bash
+npm test
+```
+
+Or from **`server/`** only:
+
+```bash
+cd server
+npm test
+```
+
+Watch mode (re-run on file changes):
+
+```bash
+cd server
+npm run test:watch
+```
+
+Prerequisite: install dependencies (`npm run install:all` or `npm install` inside `server/`).
+
+## Browser E2E tests (Playwright)
+
+End-to-end tests drive the real UI in Chromium. Playwright runs `npm run dev:e2e`, which starts the API on **3002** and Vite on **5175** (see `VITE_DEV_PORT` in `client/vite.config.ts`). That avoids clashing with a normal `npm run dev` session on **5174**. The server gets `TEST_SQLITE_PATH` so E2E uses a **temporary SQLite file** (not `server/data/locations.db`).
+
+**One-time:** install browser binaries (required after `npm install` at the repo root):
+
+```bash
+npm run test:e2e:install
+```
+
+Run all UI tests (headless):
+
+```bash
+npm run test:e2e
+```
+
+Other modes:
+
+```bash
+npm run test:e2e:headed
+npm run test:e2e:ui
+```
+
+**Prerequisites:** `npm run install:all` (or install root + `server/` + `client/` dependencies). Ensure port **3002** is free for the API (or stop any other process using it before running E2E).
+
+The suite covers map load, navigation to **Saved locations**, saving a point from the map (live `POST /api/locations` and Nominatim-backed address preview—needs network), and deleting an entry (confirm dialog).
+
+To run the same stack manually on **5175** (optional):
+
+```bash
+# bash / WSL / Git Bash
+VITE_DEV_PORT=5175 npm run dev:e2e
+```
+
+```powershell
+# Windows PowerShell
+$env:VITE_DEV_PORT = "5175"; npm run dev:e2e
+```
+
 ## Environment variables
 
 | Variable | Where | Description |
@@ -101,6 +172,8 @@ Optional `server/.env` is supported via `dotenv`.
 | GET | `/api/health` | `{ "ok": true }` |
 | GET | `/api/locations` | Array of `LocationRow` |
 | POST | `/api/locations` | Body: `CreateLocationBody` — `{ latitude, longitude, address? }` |
+| DELETE | `/api/locations/:id` | Remove a row by id |
+| GET | `/api/geocode/reverse?lat=&lon=` | `{ address }` from reverse geocoding |
 
 Shared shapes live in `shared/location.ts` so the client and server stay aligned.
 
