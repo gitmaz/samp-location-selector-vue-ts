@@ -22,18 +22,6 @@ npm run install:all
 
 This repo includes a root `.npmrc` that turns off the progress bar and skips audit/fund prompts so installs are quieter in terminals where npm’s UI looks “stuck” or repeats `idealTree` / timing lines.
 
-### WSL: install feels frozen or spammy
-
-1. **You may still be using Windows Node from WSL** — Run `which npm` and `type npm`. If you see `/mnt/c/Program Files/nodejs/npm` (or similar), WSL is calling **Windows** npm against `/mnt/c/...` paths. That is slow and can look like a hang. Prefer a **Linux** Node in WSL, for example:
-   ```bash
-   sudo apt update && sudo apt install -y nodejs npm build-essential
-   ```
-   Or install Node via [nvm](https://github.com/nvm-sh/nvm) inside WSL and use that shell for installs.
-2. **Use the Linux filesystem for the project** — If the repo lives under `/mnt/c/...`, I/O is slow. Copy or clone under `~/projects/...` when using Linux Node.
-3. **`ERR_SOCKET_TIMEOUT` (network)** — A verbose run showed installs failing while downloading packages from the registry (not stuck on `idealTree` forever). The repo root `.npmrc` increases fetch timeouts and retries. You can also retry, check VPN/proxy/firewall, or run `npm config set registry https://registry.npmjs.org/`.
-4. **Native module** — `better-sqlite3` compiles during `npm install` in `server/`; that can sit quietly for a while on Linux.
-5. **Clean retry** — `rm -rf node_modules server/node_modules client/node_modules` then `npm cache clean --force` and `npm install` / `npm run install:all` again.
-6. **Diagnose** — From WSL: `npm run install:all -- --foreground-scripts --loglevel=verbose` to see fetch vs. lifecycle scripts.
 
 ## Run (development)
 
