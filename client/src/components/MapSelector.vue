@@ -34,6 +34,7 @@ import { computed, ref } from 'vue';
 import { LMap, LMarker, LPopup, LTileLayer } from '@vue-leaflet/vue-leaflet';
 import L from 'leaflet';
 
+
 const props = defineProps<{
   initialLat: number;
   initialLng: number;
@@ -74,6 +75,7 @@ function onMapClick(e: L.LeafletMouseEvent) {
   pendingLatLng.value = [lat, lng];
   emit('update:coords', { lat, lng });
 }
+
 </script>
 
 <style scoped>

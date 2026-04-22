@@ -186,7 +186,7 @@ Shared shapes live in `shared/location.ts` so the client and server stay aligned
 
 ## Folder name
 
-This sample uses the folder name **`samp-locatiom-selector-vue-ts`** (typo in “location”) to match the path you chose in the repo.
+This sample uses the folder name **`samp-locatiom-selector-vue-ts`** (typo in “location”) to match the path I chose in the repo.
 
 ## Troubleshooting
 
